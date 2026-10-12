@@ -1,0 +1,19 @@
+# Generated packages and local build products
+/build/
+/dist/
+*.zip
+__pycache__/
+*.py[cod]
+
+# Local development and private production assets
+/.test-runtimes/
+/.venv/
+/.env
+/.env.*
+*.blend
+*.blend1
+*.blend2
+/zlm-tutorial/
+node_modules/
+.DS_Store
+Thumbs.db
