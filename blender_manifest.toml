@@ -1,12 +1,12 @@
 schema_version = "1.0.0"
 
 id = "zlm"
-version = "1.10.0"
+version = "1.11.1"
 name = "ZLM"
 tagline = "Measure and locally resize a mesh cross-section with falloff"
 maintainer = "Yining Zi"
 type = "add-on"
 
-blender_version_min = "5.2.0"
+blender_version_min = "4.4.0"
 license = ["SPDX:GPL-3.0-or-later"]
 copyright = ["2026 Yining Zi"]

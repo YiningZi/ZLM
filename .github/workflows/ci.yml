@@ -1,0 +1,50 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  blender-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check metadata and build extension
+        run: |
+          python tools/check_project.py
+          python tools/build.py
+      - name: Install Blender runtime dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libxkbcommon0 libxi6 libxrender1 libxxf86vm1 libgl1 libsm6
+      - name: Download pinned Blender 4.4.3
+        working-directory: ${{ runner.temp }}
+        run: |
+          curl --fail --location --retry 3 --output blender.tar.xz https://download.blender.org/release/Blender4.4/blender-4.4.3-linux-x64.tar.xz
+          echo '8d3be07d2bc412b502c6bfe3cfe3e22195a4164076867da987ce148d73c27946  blender.tar.xz' | sha256sum --check
+          tar -xf blender.tar.xz
+          echo "${RUNNER_TEMP}/blender-4.4.3-linux-x64" >> "$GITHUB_PATH"
+      - name: Run Blender regression suites
+        run: python tools/run_blender_tests.py
+      - name: Validate Blender extension
+        run: blender --factory-startup --command extension validate dist/ZLM-*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zlm-package
+          path: |
+            dist/ZLM-*.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30

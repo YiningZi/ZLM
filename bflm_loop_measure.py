@@ -1,12 +1,16 @@
 bl_info = {
     "name": "ZLM",
     "author": "Yining Zi",
-    "version": (1, 10, 0),
-    "blender": (5, 2, 0),
+    "version": (1, 11, 1),
+    "blender": (4, 4, 0),
     "location": "3D View > Sidebar > ZLM",
     "description": "画线测量模型截面周长，并通过可控衰减局部调整围径",
     "category": "3D View",
 }
+
+# Extensions remove bl_info during loading; UI code must use independent metadata.
+# Keep the literal bl_info version above for Blender's legacy add-on scanner.
+ZLM_VERSION = (1, 11, 1)
 
 import hashlib
 import heapq
@@ -310,19 +314,13 @@ def _extract_loops(obj, plane_point, plane_normal, anchor=None, *, use_evaluated
 
 
 def _format_length(value):
-    try:
-        settings = bpy.context.scene.unit_settings
-        unit_system = settings.system
-        if unit_system != "NONE":
-            try:
-                return bpy.utils.units.to_string(
-                    unit_system, settings.scale_length, value, precision=3
-                )
-            except TypeError:
-                # Kept for Blender builds exposing the older two-argument form.
-                return bpy.utils.units.to_string(unit_system, value, precision=3)
-    except Exception:
-        pass
+    settings = bpy.context.scene.unit_settings
+    if settings.system != "NONE":
+        # Shared Blender 4.4+ API: the second argument is the unit category,
+        # and world-space Blender units must be converted using scene scale.
+        return bpy.utils.units.to_string(
+            settings.system, "LENGTH", value * settings.scale_length, precision=3
+        )
     return f"{value:.3f} BU"
 
 
@@ -1160,7 +1158,7 @@ class BFLM_PT_about(Panel):
         info.label(text="ZLM")
         info.label(text="围径测量与局部调整")
         info.label(text="Yining Zi", icon="USER")
-        info.label(text="版本 " + ".".join(map(str, bl_info["version"])), icon="INFO")
+        info.label(text="版本 " + ".".join(map(str, ZLM_VERSION)), icon="INFO")
 
         legal = layout.box()
         legal.label(text="知识产权", icon="FILE_TEXT")
